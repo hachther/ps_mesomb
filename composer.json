@@ -1,0 +1,20 @@
+{
+  "name": "hachther/ps_mesomb",
+  "description": "MeSomb payment for Prestashop",
+  "homepage": "https://github.com/PrestaShop/paymentexample",
+  "license": "AFL-3.0",
+  "authors": [
+    {
+      "name": "Hachther LLC",
+      "email": "contact@hachther.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.2",
+    "hachther/mesomb-php": ">=2.0"
+  },
+  "config": {
+    "preferred-install": "dist"
+  },
+  "type": "prestashop-module"
+}

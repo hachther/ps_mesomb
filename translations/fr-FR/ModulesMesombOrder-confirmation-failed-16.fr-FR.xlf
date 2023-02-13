@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="admin-dev" source-language="fr-FR" target-language="fr-FR" datatype="plaintext">
+    <body>
+      <trans-unit id="9d67bee92ea535ba9c7840797966edfa">
+        <source>An error occurred during your payment.</source>
+        <target>Une erreur s'est produite lors de votre paiement.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="7dc9c0e2e38c2bbf16923bc6d79b7b06">
+        <source>Please [a @href1@]try again[/a] or contact the website owner.</source>
+        <target>Veuillez [a @href1@]réessayer[/a] ou contactez le propriétaire du site Web.</target>
+        <note>Line: </note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

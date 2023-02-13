@@ -1,0 +1,61 @@
+{
+    "packages": [
+        {
+            "name": "hachther/mesomb-php",
+            "version": "2.0",
+            "version_normalized": "2.0.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hachther/mesomb-php.git",
+                "reference": "947741fd97f11b792532567271801ff1667e7c22"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hachther/mesomb-php/zipball/947741fd97f11b792532567271801ff1667e7c22",
+                "reference": "947741fd97f11b792532567271801ff1667e7c22",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5"
+            },
+            "time": "2023-02-11T11:37:33+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "MeSomb\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hachther LLC",
+                    "email": "contact@hachther.com"
+                }
+            ],
+            "description": "MeSomb PHP Library",
+            "keywords": [
+                "Orange Money",
+                "api",
+                "mesomb",
+                "mobile money",
+                "payment processing"
+            ],
+            "support": {
+                "issues": "https://github.com/hachther/mesomb-php/issues",
+                "source": "https://github.com/hachther/mesomb-php/tree/2.0"
+            },
+            "install-path": "../hachther/mesomb-php"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="admin-dev" source-language="fr-FR" target-language="fr-FR" datatype="plaintext">
+    <body>
+      <trans-unit id="e8bafbec1acdf0bb02e9d77f66e8165f">
+        <source>Pay with Mobile Money</source>
+        <target>Payer avec Mobile Money</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="f6be10ca35026fc23551289fc1f00232">
+        <source>Pay with Orange Money</source>
+        <target>Payer avec Orange Money</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="566024d54f4d077b05826e554e7d8091">
+        <source>Pay with Airtel Money</source>
+        <target>Payer avec Airtel Money</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="134c858fbc1e4f57acbe5e24ec507a7f">
+        <source>Mobile Payment</source>
+        <target>Mobile Payment</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3370771ca16d6082dc82e8b40f20919b">
+        <source>This module allows you to accept mobile payments (Mobile Money, Orange Money ...) in your shop</source>
+        <target>Ce module vous permet d'accepter les paiements mobiles (Mobile Money, Orange Money...) dans votre boutique</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="e09484ba6c16bc20236b63cc0d87ee95">
+        <source>Are you sure you want to delete these details?</source>
+        <target>Voulez-vous vraiment supprimer ces informations?</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="be3d9f0cdeb1a7e539ec3b98983a55f4">
+        <source>MeSomb settings must be configured before using this module.</source>
+        <target>Les paramètres MeSomb doivent être configurés avant d'utiliser ce module.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a02758d758e8bec77a33d7f392eb3f8a">
+        <source>No currency has been set for this module.</source>
+        <target>Aucune devise n'a été définie pour ce module.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="8843401f2bc2c408608a22c1af6a1e08">
+        <source>The "Application Key" field is required.</source>
+        <target>Le champ "Clé d'application" est obligatoire.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="b399d24f6df98e7a52414bdcd2d40ee7">
+        <source>The "Client Key" field is required.</source>
+        <target>Le champ "Client Key" est obligatoire.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="ff048bde26280b2525eac860b2ce6ace">
+        <source>The "Secret Key" field is required.</source>
+        <target>Le champ "Clé secrète" est obligatoire.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="fe290b212b71a6b14f6950ee92b823aa">
+        <source>You must select at least one country</source>
+        <target>Vous devez sélectionner au moins un pays</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="d55aa765f6893083a851267524cd3b3a">
+        <source>MeSomb Service Settings</source>
+        <target>Paramètres Service MeSomb</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="b54d8eeef71f245ece180a656c278adc">
+        <source>Application Key</source>
+        <target>Clé d'Application</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="1077fd7a4d152ee0721d360d811dd44e">
+        <source>Client Key</source>
+        <target>Clé Client</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="5eb6bb157528b365f84c27bb4784031b">
+        <source>Secret Key</source>
+        <target>Clé Secrète</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="790d59ef178acbc75d233bf4211763c6">
+        <source>Countries</source>
+        <target>Pays</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="4be25f9d27da71d4e98775668b5b12af">
+        <source>Cameroon</source>
+        <target>Cameroun</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="bf2ec44b27fc25c6fd8a38792b9ef2a8">
+        <source>Niger</source>
+        <target>Niger</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="c6d67de7e83631c75cad78cda118a861">
+        <source>You can receive payments from which countries</source>
+        <target>Vous pouvez recevoir des paiements de quels pays</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="d8f304d7e856713fbbb054ba1b06de48">
+        <source>Fees Included</source>
+        <target>Frais Inclus</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="5958b54bee18f106d996e47d179e82e2">
+        <source>Fees are already included in the displayed price</source>
+        <target>Les frais sont déjà inclus dans le prix affiché</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="93cba07454f06a4a960172bbd6e2a435">
+        <source>Yes</source>
+        <target>Oui</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="fe772fde4a525494186f4155f88c14df">
+        <source>Currency Conversion</source>
+        <target>Conversion de Devises</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3a0c1c1ea53b8c7778e4ddb7d63ea6c1">
+        <source>Rely on MeSomb to automatically convert foreign currencies</source>
+        <target>Faites confiance à MeSomb pour convertir automatiquement les devises étrangères</target>
+        <note>Line: </note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
