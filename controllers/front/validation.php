@@ -50,7 +50,6 @@ class Ps_mesombValidationModuleFrontController extends ModuleFrontController
         $currency = $this->context->currency;
         $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
 
-        MeSomb\MeSomb::$apiBase = 'http://127.0.0.1:8000';
         $country_codes = ['CM' => '237', 'NE' => '227'];
         $countries = explode(',', Configuration::get('MESOMB_COUNTRIES'));
         $operation = new PaymentOperation(Configuration::get('APP_KEY'), Configuration::get('CLIENT_KEY'), Configuration::get('SECRET_KEY'));
