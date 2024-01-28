@@ -3,6 +3,7 @@
   "description": "MeSomb payment for Prestashop",
   "homepage": "https://github.com/PrestaShop/paymentexample",
   "license": "AFL-3.0",
+  "version": "1.0.1",
   "authors": [
     {
       "name": "Hachther LLC",
