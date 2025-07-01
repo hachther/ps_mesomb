@@ -77,7 +77,7 @@ class Ps_mesomb extends PaymentModule
         require_once realpath(dirname(__FILE__) . '/smarty/plugins') . '/modifier.mesomblreplace.php';
 
         $this->displayName = $this->trans('Mobile Payment', [], 'Modules.Mesomb.Admin');
-        $this->description = $this->trans('This module allows you to accept mobile payments (Mobile Money, Orange Money ...) in your shop', [], 'Modules.Mesomb.Admin');
+        $this->description = $this->trans('This module allows you to accept mobile payments (Mobile Money, Orange Money, Airtel Money ...) in your shop', [], 'Modules.Mesomb.Admin');
         $this->confirmUninstall = $this->trans('Are you sure you want to delete these details?', [], 'Modules.Mesomb.Admin');
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
 
