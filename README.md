@@ -23,7 +23,21 @@ This will help your add the mobile payment on your shop by relying on MeSomb ser
 
 ### MeSomb is available in which countries?
 
-Cameroon and Niger for the moment.
+- Cameroon 
+- Nigeria
+- Benin
+- Burkina Faso
+- RDC
+- Congo
+- Gabon
+- Ivory Coast
+- Malawi
+- Rwanda
+- Senegal
+- Sierra Leone
+- Tanzania
+- Uganda
+- Zambia
 
 ### Which operators supported by MeSomb?
 
