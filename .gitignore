@@ -1,2 +1,4 @@
 composer.lock
 .idea
+build.sh
+*.zip
