@@ -49,7 +49,6 @@ class Ps_mesombValidationModuleFrontController extends ModuleFrontController
 
         $currency = $this->context->currency;
         $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
-        \MeSomb\MeSomb::$apiBase = 'http://host.docker.internal:8000';
         $operation = new PaymentOperation(Configuration::get('APP_KEY'), Configuration::get('CLIENT_KEY'), Configuration::get('SECRET_KEY'));
         $country = Tools::getValue('country', 'CM');
         $service = Tools::getValue('service');
