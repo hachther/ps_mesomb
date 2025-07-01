@@ -122,7 +122,7 @@ class Ps_mesombValidationModuleFrontController extends ModuleFrontController
             Tools::redirect(Context::getContext()->link->getModuleLink(
                 $this->module->name,
                 'orderFailure',
-                ['message' => urlencode($ret->getMessage())]
+                ['message' => urlencode($ret->message)]
             ));
         } catch (Exception $e) {
             Tools::redirect(Context::getContext()->link->getModuleLink(
