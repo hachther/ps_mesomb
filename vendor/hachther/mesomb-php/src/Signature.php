@@ -7,7 +7,7 @@ use DateTime;
 class Signature
 {
     /**
-     * @param string $service service to use can be payment, wallet ... (the list is provide by MeSomb)
+     * @param string $service service to use can be payment, wallet ... (the list is provided by MeSomb)
      * @param string $method HTTP method (GET, POST, PUT, PATCH, DELETE...)
      * @param string $url the full url of the request with query element https://mesomb.hachther.com/path/to/ressource?highlight=params#url-parsing
      * @param DateTime $date Datetime of the request
@@ -19,6 +19,10 @@ class Signature
      */
     public static function signRequest($service, $method, $url, DateTime $date, $nonce, array $credentials, array $headers = [], array $body = null)
     {
+        if (version_compare(phpversion(), '7.1', '>=')) {
+            ini_set( 'serialize_precision', -1 );
+        }
+
         $algorithm = MeSomb::$algorithm;
         $parse = parse_url($url);
         $canonicalQuery = isset($parse['query']) ? $parse['query'] : '';
@@ -31,7 +35,7 @@ class Signature
         $headers['host'] = $parse['scheme']."://".$parse['host'].(isset($parse['port']) ? ":".$parse['port'] : '');
         $headers['x-mesomb-date'] = $timestamp;
         $headers['x-mesomb-nonce'] = $nonce;
-        ksort($headers);
+        // ksort($headers);
         $callback = function ($k, $v) {
             return strtolower($k) . ":" . $v;
         };
@@ -52,7 +56,7 @@ class Signature
         $scope = $date->format("Ymd")."/".$service."/mesomb_request";
         $stringToSign = $algorithm."\n".$timestamp."\n".$scope."\n".sha1($canonicalRequest);
 
-        $signature = hash_hmac('sha1', $stringToSign, $credentials['secretKey'], false);
+        $signature = hash_hmac('sha1', $stringToSign, $credentials['secretKey']);
         $accessKey = $credentials['accessKey'];
 
         return "$algorithm Credential=$accessKey/$scope, SignedHeaders=$signedHeaders, Signature=$signature";

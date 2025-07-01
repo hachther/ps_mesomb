@@ -24,6 +24,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
+use GuzzleHttp\Client;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
@@ -59,7 +60,7 @@ class Ps_mesomb extends PaymentModule
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
 
-        $config = Configuration::getMultiple(['APP_KEY', 'CLIENT_KEY', 'SECRET_KEY', 'MESOMB_COUNTRIES', 'FEES_INCLUDED', 'CONVERSION']);
+        $config = Configuration::getMultiple(['APP_KEY', 'CLIENT_KEY', 'SECRET_KEY', 'FEES_INCLUDED', 'CONVERSION']);
         if (isset($config['APP_KEY'])) {
             $this->appKey = $config['APP_KEY'];
         }
@@ -69,39 +70,12 @@ class Ps_mesomb extends PaymentModule
         if (isset($config['SECRET_KEY'])) {
             $this->secretKey = $config['SECRET_KEY'];
         }
-        if (isset($config['MESOMB_COUNTRIES'])) {
-            $this->countries = explode(',', $config['MESOMB_COUNTRIES']);
-        }
         if (isset($config['FEES_INCLUDED'])) {
             $this->feesIncluded = $config['FEES_INCLUDED'];
         }
         if (isset($config['CONVERSION'])) {
             $this->conversion = $config['CONVERSION'];
         }
-
-        $this->providers = array(
-            array(
-                'key' => 'MTN',
-                'name' => 'MTN',
-                'description' => $this->trans("Pay with Mobile Money", [], 'Modules.Mesomb.Admin'),
-                'icon' => Media::getMediaPath(_PS_MODULE_DIR_.$this->name.'/views/images/logo-momo.png'),
-                'countries' => array('CM')
-            ),
-            array(
-                'key' => 'ORANGE',
-                'name' => 'Orange',
-                'description' => $this->trans("Pay with Orange Money", [], 'Modules.Mesomb.Admin'),
-                'icon' => Media::getMediaPath(_PS_MODULE_DIR_.$this->name.'/views/images/logo-orange.jpg'),
-                'countries' => array('CM')
-            ),
-            array(
-                'key' => 'AIRTEL',
-                'name' => 'Airtel',
-                'description' => $this->trans('Pay with Airtel Money', [], 'Modules.Mesomb.Admin'),
-                'icon' => Media::getMediaPath(_PS_MODULE_DIR_.$this->name.'/views/images/logo-airtel.jpg'),
-                'countries' => array('NE')
-            )
-        );
 
         $this->bootstrap = true;
         parent::__construct();
@@ -135,7 +109,6 @@ class Ps_mesomb extends PaymentModule
         return Configuration::deleteByName('APP_KEY')
             && Configuration::deleteByName('CLIENT_KEY')
             && Configuration::deleteByName('SECRET_KEY')
-            && Configuration::deleteByName('MESOMB_COUNTRIES')
             && Configuration::deleteByName('FEES_INCLUDED')
             && Configuration::deleteByName('CONVERSION')
             && parent::uninstall();
@@ -153,9 +126,6 @@ class Ps_mesomb extends PaymentModule
             if (!Tools::getValue('SECRET_KEY')) {
                 $this->_postErrors[] = $this->trans('The "Secret Key" field is required.', [], 'Modules.Mesomb.Admin');
             }
-            if (!Tools::getValue('MESOMB_COUNTRIES')) {
-                $this->_postErrors[] = $this->trans('You must select at least one country', [], 'Modules.Mesomb.Admin');
-            }
         }
     }
 
@@ -165,7 +135,6 @@ class Ps_mesomb extends PaymentModule
             Configuration::updateValue('APP_KEY', Tools::getValue('APP_KEY'));
             Configuration::updateValue('CLIENT_KEY', Tools::getValue('CLIENT_KEY'));
             Configuration::updateValue('SECRET_KEY', Tools::getValue('SECRET_KEY'));
-            Configuration::updateValue('MESOMB_COUNTRIES', implode(',', Tools::getValue('MESOMB_COUNTRIES')));
             Configuration::updateValue('FEES_INCLUDED', Tools::getValue('FEES_INCLUDED'));
             Configuration::updateValue('CONVERSION', Tools::getValue('CONVERSION'));
         }
@@ -261,22 +230,6 @@ class Ps_mesomb extends PaymentModule
                         'required' => true,
                     ],
                     [
-                        'type' => 'select',
-                        'label' => $this->trans('Countries', [], 'Modules.Mesomb.Admin'),
-                        'name' => 'MESOMB_COUNTRIES',
-                        'required' => true,
-                        'options' => array(
-                            'query' => array(
-                                array('id' => 'CM', 'name' => $this->trans('Cameroon', [], 'Modules.Mesomb.Admin')),
-                                array('id' => 'NE', 'name' => $this->trans('Niger', [], 'Modules.Mesomb.Admin')),
-                            ),
-                            'id' => 'id',
-                            'name' => 'name',
-                        ),
-                        'hint' => $this->trans('You can receive payments from which countries', [], 'Modules.Mesomb.Admin'),
-                        'multiple' => true
-                    ],
-                    [
                         'type' => 'switch',
                         'label' => $this->trans('Fees Included', [], 'Modules.Mesomb.Admin'),
                         'name' => 'FEES_INCLUDED',
@@ -342,7 +295,6 @@ class Ps_mesomb extends PaymentModule
             'APP_KEY' => Tools::getValue('APP_KEY', Configuration::get('APP_KEY')),
             'CLIENT_KEY' => Tools::getValue('CLIENT_KEY', Configuration::get('CLIENT_KEY')),
             'SECRET_KEY' => Tools::getValue('SECRET_KEY', Configuration::get('SECRET_KEY')),
-            'MESOMB_COUNTRIES[]' => Tools::getValue('MESOMB_COUNTRIES', explode(',', Configuration::get('MESOMB_COUNTRIES', null, null, null, 'CM'))),
             'FEES_INCLUDED' => Tools::getValue('FEES_INCLUDED', Configuration::get('FEES_INCLUDED', null, null, null, true)),
             'CONVERSION' => Tools::getValue('CONVERSION', Configuration::get('CONVERSION')),
         ];
@@ -400,16 +352,58 @@ class Ps_mesomb extends PaymentModule
 //        return $iframeOption;
 //    }
 
+    protected function loadPricing()
+    {
+        $url = 'http://host.docker.internal:8000/api/v1.1/payment/pricing/';
+        $client = new Client();
+        $options = [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Output-Format' => 'JSON',
+                'X-MeSomb-Application' => $this->appKey,
+            ]
+        ];
+
+        $response = $client->request('GET', $url, $options);
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
     protected function generateForm()
     {
-        $provs = array_filter($this->providers, function($k, $v) {
-            return count(array_intersect($k['countries'], (array)$this->countries)) > 0;
-        }, ARRAY_FILTER_USE_BOTH);
+        $pricing = $this->loadPricing();
+        $pricing = array_filter($pricing, function($item) {
+            return $item['service'] != 'COLLECTION';
+        });
+        $countries = [];
+        $countryNames = [];
+        $providerNames = [];
+        $placeholders = [];
+        $grouped = array_reduce($pricing, function($carry, $item) use (&$countries, &$countryNames, &$providerNames, &$placeholders) {
+            $item['logo'] = str_starts_with($item['logo'], 'http') ? $item['logo'] : 'https://backend.mesomb.com'.$item['logo'];
+            $carry[$item['provider']][] = $item;
+            if (!in_array($item['country'], $countries)) {
+                $countries[] = $item['country'];
+                $countryNames[$item['country']] = $item['country_name'];
+            }
+            $providerNames[$item['provider']] = $item['service_name'];
+            $placeholders[$item['provider']] = $this->trans('%s Account', [$item['service_name']], 'Modules.Mesomb.Admin');;
+            return $carry;
+        });
 
         $this->context->smarty->assign([
             'action' => $this->context->link->getModuleLink($this->name, 'validation', array(), true),
-            'providers' => $provs,
-            'countries' => array_map(function ($v) {return ['name' => $this->countries_name[$v], 'value' => $v];}, $this->countries),
+            'providers' => array_map(function ($v) use (&$providerNames, &$grouped) {
+                return [
+                    'key' => $v,
+                    'countries' => array_map(function ($item) {return $item['country'];}, $grouped[$v]),
+                    'name' => $providerNames[$v],
+                    'icon' => $grouped[$v][0]['logo'],
+                ];
+            }, array_keys($grouped)),
+            'countries' => array_map(function ($v) use (&$countryNames) {
+                return ['name' => $countryNames[$v], 'value' => $v];
+            }, $countries),
+            'placeholders' => $placeholders,
         ]);
 
         return $this->context->smarty->fetch('module:ps_mesomb/views/templates/front/payment_form.tpl');

@@ -28,11 +28,12 @@ var tokenRequest = function () {
 };
 
 jQuery(function ($) {
-  const placeholders = {
-    ORANGE: 'Orange Money Number (Expl: 690000000)',
-    MTN: 'Mobile Money Number  (Expl: 670000000)',
-    AIRTEL: 'Airtel Money Number  (Expl: 67000000)',
-  }
+  // const placeholders = {
+  //   ORANGE: 'Orange Money Number (Expl: 690000000)',
+  //   MTN: 'Mobile Money Number  (Expl: 670000000)',
+  //   AIRTEL: 'Airtel Money Number  (Expl: 67000000)',
+  // }
+  const placeholders = $('#mesomb-provider-names')?.data()?.json ?? {};
   function toggleCountry(country) {
     if (!(country?.length > 0)) {
       return;

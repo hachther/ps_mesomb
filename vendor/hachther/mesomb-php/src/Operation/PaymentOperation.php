@@ -7,383 +7,349 @@ use MeSomb\Exception\InvalidClientRequestException;
 use MeSomb\Exception\PermissionDeniedException;
 use MeSomb\Exception\ServerException;
 use MeSomb\Exception\ServiceNotFoundException;
-use MeSomb\HttpClient\CurlClient;
-use MeSomb\MeSomb;
 use MeSomb\Model\Application;
+use MeSomb\Model\Transaction;
 use MeSomb\Model\TransactionResponse;
-use MeSomb\Signature;
+use MeSomb\Util\RandomGenerator;
+use MeSomb\Util\Util;
 
 /**
  * Containing all operations provided by MeSomb Payment Service.
  *
- * [Check the documentation here](https://mesomb.hachther.com/en/api/v1.1/schema/)
+ * Class PaymentOperation
+ *
+ * @package MeSomb\Operation
+ *
+ * @property string $applicationKey Your service application key on MeSomb
+ * @property string $accessKey Your access key provided by MeSomb
+ * @property string $secretKey Your secret key provided by MeSomb
+ * @property string $language The language to be used for the response
  */
-class PaymentOperation
+class PaymentOperation extends AOperation
 {
-    /**
-     * Your service application key on MeSomb
-     *
-     * @var string $applicationKey
-     */
-    private $applicationKey;
+    protected $service = 'payment';
 
     /**
-     * Your access key provided by MeSomb
+     * PaymentOperation constructor.
      *
-     * @var string $accessKey
-     */
-    private $accessKey;
-
-    /**
-     * Your secret key provided by MeSomb
-     *
-     * @var string $secretKey
-     */
-    private $secretKey;
-
-    /**
      * @param string $applicationKey
      * @param string $accessKey
      * @param string $secretKey
+     * @param string $language
      */
-    public function __construct($applicationKey, $accessKey, $secretKey)
+    public function __construct($applicationKey, $accessKey, $secretKey, $language = 'en')
     {
-        $this->applicationKey = $applicationKey;
-        $this->accessKey = $accessKey;
-        $this->secretKey = $secretKey;
-    }
-
-    private function buildUrl($endpoint) {
-        $host = MeSomb::$apiBase;
-        $apiVersion = MeSomb::$apiVersion;
-        return "$host/en/api/$apiVersion/$endpoint";
-    }
-
-    /**
-     * @param $method
-     * @param $endpoint
-     * @param $date
-     * @param $nonce
-     * @param array $headers
-     * @param array|null $body
-     * @return string
-     */
-    private function getAuthorization($method, $endpoint, $date, $nonce, array $headers = [], array $body = null)
-    {
-        $url = $this->buildUrl($endpoint);
-
-        $credentials = ['accessKey' => $this->accessKey, 'secretKey' => $this->secretKey];
-
-        return Signature::signRequest('payment', $method, $url, $date, $nonce, $credentials, $headers, $body);
-    }
-
-    /**
-     * @param int $statusCode HTTP Error code
-     * @param string $response text body content for curl reponse
-     * @throws InvalidClientRequestException
-     * @throws ServerException
-     * @throws ServiceNotFoundException
-     * @throws PermissionDeniedException
-     */
-    private function processClientException($statusCode, $response) {
-        $code = null;
-        $message = $response;
-        if (strpos($response, "{") == 0) {
-            $data = json_decode($response, true);
-            $message = $data['detail'];
-            $code = $data['code'];
-        }
-        switch ($statusCode) {
-            case 404:
-                throw new ServiceNotFoundException($message);
-            case 403:
-            case 401:
-                throw new PermissionDeniedException($message);
-            case 400:
-                throw new InvalidClientRequestException($message, $code);
-            default:
-                throw new ServerException($message, $code);
-        }
+        parent::__construct($applicationKey, $accessKey, $secretKey, $language);
     }
 
     /**
      * Collect money from a mobile account
      *
-     * @param int $amount amount to collect
-     * @param string $service MTN, ORANGE, AIRTEL
-     * @param string $payer account number to collect from
-     * @param DateTime $date date of the request
-     * @param string $nonce unique string on each request
-     * @param string|null $trxID unique string in your local system
-     * @param string|null $country country CM, NE
-     * @param string|null $currency code of the currency of the amount
-     * @param bool|null $feesIncluded if you want MeSomb to deduct he fees in the collected amount
-     * @param string|null $mode asynchronous or synchronous
-     * @param bool|null $conversion In case of foreign currently defined if you want to rely on MeSomb to convert the amount in the local currency
-     * @param array<string, string>|null $location array-key containing the location of the customer ({town: string, region: string, country: string}) check the documentation.
-     * @param array<string, string>|null $customer array-key containing information of the customer ({email: string, phone: string, town: string, region: string, country: string, first_name: string, last_name: string, address: string}) check the documentation
-     * @param array<array<string, string>>|null $products array of product contained in the transaction. Product in this format array{id: string, name: string, category: ?string, quantity: int, amount: float}
-     * @param array|null $extra Extra parameter to send in the body check the API documentation
+     * @param array{
+     *     amount: float,
+     *     service: string,
+     *     payer: string,
+     *     nonce?: string,
+     *     country?: string,
+     *     currency?: string,
+     *     fees?: bool,
+     *     mode?: string,
+     *     conversion?: bool,
+     *     location?: array{
+     *         town: string,
+     *         region?: string,
+     *         location?: string
+     *     },
+     *     products?: array{
+     *         name: string,
+     *         category?: string,
+     *         quantity: int,
+     *         amount: float
+     *     },
+     *     customer?: array{
+     *         phone?: string,
+     *         email?: string,
+     *         first_name?: string,
+     *         last_name: string,
+     *         address?: string,
+     *         town?: string,
+     *         region?: string,
+     *         country?: string
+     *     },
+     *     trxID?: string,
+     * } $params
      *
      * @return TransactionResponse
      * @throws InvalidClientRequestException
      * @throws ServerException
      * @throws ServiceNotFoundException
+     * @throws PermissionDeniedException
      */
-    public function makeCollect(
-        $amount,
-        $service,
-        $payer,
-        DateTime $date,
-        $nonce,
-        $trxID = null,
-        $country = null,
-        $currency = null,
-        $feesIncluded = null,
-        $mode = null,
-        $conversion = null,
-        array $location = null,
-        array $customer = null,
-        array $products = null,
-        array $extra = null
-    ) {
-        if (is_null($country)) {
-            $country = 'CM';
-        }
-        if (is_null($currency)) {
-            $currency = 'XAF';
-        }
-        if (is_null($feesIncluded)) {
-            $feesIncluded = true;
-        }
-        if (is_null($mode)) {
-            $mode = 'synchronous';
-        }
-        if (is_null($conversion)) {
-            $conversion = false;
-        }
-
+    public function makeCollect(array $params) {
         $endpoint = 'payment/collect/';
-        $url = $this->buildUrl($endpoint);
+
+        assert($params['amount'] > 0);
 
         $body = [
-            'amount' => $amount,
-            'service' => $service,
-            'payer' => $payer,
-            'country' => $country,
-            'currency' => $currency,
-            'fees' => $feesIncluded,
-            'conversion' => $conversion,
+            'amount' => $params['amount'],
+            'service' => $params['service'],
+            'payer' => $params['payer'],
+            'country' => Util::getOrDefault($params, 'country', 'CM'),
+            'currency' => Util::getOrDefault($params, 'currency', 'XAF'),
+            'amount_currency' => Util::getOrDefault($params, 'currency', 'XAF'),
+            'fees' => Util::getOrDefault($params, 'fees', true),
+            'conversion' => Util::getOrDefault($params, 'conversion', false),
         ];
-        if (!is_null($location)) {
-            $body['location'] = $location;
+        if (!is_null(Util::getOrDefault($params, 'trxID'))) {
+            $body['trxID'] = $params['trxID'];
         }
-        if (!is_null($customer)) {
-            $body['customer'] = $customer;
+        if (!is_null(Util::getOrDefault($params, 'location'))) {
+            $body['location'] = $params['location'];
         }
-        if (!is_null($products)) {
-            $body['products'] = $products;
+        if (!is_null(Util::getOrDefault($params, 'customer'))) {
+            $body['customer'] = $params['customer'];
         }
-        if ($extra != null) {
-            $body = array_merge($body, $extra);
+        if (!is_null(Util::getOrDefault($params, 'products'))) {
+            $body['products'] = $params['products'];
         }
-
-        $authorization = $this->getAuthorization('POST', $endpoint, $date, $nonce, ['content-type' => 'application/json'], $body);
-
-        $headers = [
-            "x-mesomb-date: ".$date->getTimestamp(),
-            'x-mesomb-nonce: '.$nonce,
-            'Authorization: '.$authorization,
-            'Content-Type: application/json',
-            'X-MeSomb-Application: '.$this->applicationKey,
-            'X-MeSomb-OperationMode: '.$mode,
-        ];
-        if (!is_null($trxID)) {
-            $headers[] = 'X-MeSomb-TrxID: '.$trxID;
+        if (!is_null(Util::getOrDefault($params, 'extra'))) {
+            $body = array_merge($body, $params['extra']);
         }
 
-        $client = new CurlClient();
-        list($rbody, $rcode, $rheaders) = $client->request('post', $url, $headers, $body);
-        if ($rcode >= 300) {
-            $this->processClientException($rcode, $rbody);
-        }
-        return new TransactionResponse(json_decode($rbody, true));
+        return new TransactionResponse($this->executeRequest('POST', $endpoint, new DateTime(), Util::getOrDefault($params, 'nonce', RandomGenerator::nonce()), $body, Util::getOrDefault($params, 'mode', 'synchronous')));
     }
 
     /**
-     * Make a deposit in a receiver mobile account.
+     * Collect money from a mobile account
      *
-     * @param int $amount the amount of the transaction
-     * @param string $service service code (MTN, ORANGE, AIRTEL, ...)
-     * @param string $receiver receiver account (in the local phone number)
-     * @param DateTime $date date of the request
-     * @param string $nonce Unique key generated for each transaction
-     * @param string|null $trxID ID of the transaction in your local system
-     * @param string|null $country country code 'CM' by default
-     * @param string|null $currency currency of the transaction (XAF, XOF, ...) XAF by default
-     * @param array|null $extra Extra parameter to send in the body check the API documentation
+     * @param array{
+     *     amount: float,
+     *     service: string,
+     *     receiver: string,
+     *     nonce?: string,
+     *     country?: string,
+     *     currency?: string,
+     *     mode?: string,
+     *     location?: array{
+     *         town: string,
+     *         region?: string,
+     *         location?: string
+     *     },
+     *     products?: array{
+     *         name: string,
+     *         category?: string,
+     *         quantity: int,
+     *         amount: float
+     *     },
+     *     customer?: array{
+     *         phone?: string,
+     *         email?: string,
+     *         first_name?: string,
+     *         last_name: string,
+     *         address?: string,
+     *         town?: string,
+     *         region?: string,
+     *         country?: string
+     *     },
+     *     trxID?: string,
+     * } $params
+     *
      * @return TransactionResponse
      * @throws InvalidClientRequestException
      * @throws ServerException
-     * @throws ServiceNotFoundException
+     * @throws ServiceNotFoundException|PermissionDeniedException
      */
-    public function makeDeposit($amount, $service, $receiver, DateTime $date, $nonce, $trxID = null, $country = null, $currency = null, array $extra = null) {
-        if (is_null($country)) {
-            $country = 'CM';
-        }
-        if (is_null($currency)) {
-            $currency = 'XAF';
-        }
-
+    public function makeDeposit(array $params) {
         $endpoint = 'payment/deposit/';
-        $url = $this->buildUrl($endpoint);
+
+        assert($params['amount'] > 0);
 
         $body = [
-            'amount' => $amount,
-            'receiver' => $receiver,
-            'service' => $service,
-            'country' => $country,
-            'currency' => $currency,
+            'amount' => $params['amount'],
+            'service' => $params['service'],
+            'receiver' => $params['receiver'],
+            'country' => Util::getOrDefault($params, 'country', 'CM'),
+            'currency' => Util::getOrDefault($params, 'currency', 'XAF'),
+            'amount_currency' => Util::getOrDefault($params, 'currency', 'XAF'),
         ];
-
-        if ($extra != null) {
-            $body = array_merge($body, $extra);
+        if (!is_null(Util::getOrDefault($params, 'trxID'))) {
+            $body['trxID'] = $params['trxID'];
+        }
+        if (!is_null(Util::getOrDefault($params, 'location'))) {
+            $body['location'] = $params['location'];
+        }
+        if (!is_null(Util::getOrDefault($params, 'customer'))) {
+            $body['customer'] = $params['customer'];
+        }
+        if (!is_null(Util::getOrDefault($params, 'products'))) {
+            $body['products'] = $params['products'];
+        }
+        if (!is_null(Util::getOrDefault($params, 'extra'))) {
+            $body = array_merge($body, $params['extra']);
         }
 
-        $authorization = $this->getAuthorization('POST', $endpoint, $date, $nonce, ['content-type' => 'application/json'], $body);
-
-        $headers = [
-            'x-mesomb-date: '.$date->getTimestamp(),
-            'x-mesomb-nonce: '.$nonce,
-            'Authorization: '.$authorization,
-            'Content-Type: '.'application/json',
-            'X-MeSomb-Application: '.$this->applicationKey,
-        ];
-        if (!is_null($trxID)) {
-            $headers[] = 'X-MeSomb-TrxID: '.$trxID;
-        }
-
-        $client = new CurlClient();
-        list($rbody, $rcode, $rheaders) = $client->request('post', $url, $headers, $body);
-        if ($rcode >= 300) {
-            $this->processClientException($rcode, $rbody);
-        }
-        return new TransactionResponse(json_decode($rbody, true));
+        return new TransactionResponse($this->executeRequest('POST', $endpoint, new DateTime(), Util::getOrDefault($params, 'nonce', RandomGenerator::nonce()), $body, Util::getOrDefault($params, 'mode', 'synchronous')));
     }
 
     /**
-     * Update security settings of your service on MeSomb
+     * Send airtime to a customer
      *
-     * @param string $field which security field you want to update (check API documentation)
-     * @param string $action SET or UNSET
-     * @param mixed|null $value value of the field
-     * @param DateTime|null $date date of the request
-     * @return Application
+     * @param array{
+     *     amount: float,
+     *     service: string,
+     *     receiver: string,
+     *     merchant: string,
+     *     nonce?: string,
+     *     country?: string,
+     *     currency?: string,
+     *     mode?: string,
+     *     location?: array{
+     *         town: string,
+     *         region?: string,
+     *         location?: string
+     *     },
+     *     products?: array{
+     *         name: string,
+     *         category?: string,
+     *         quantity: int,
+     *         amount: float
+     *     },
+     *     customer?: array{
+     *         phone?: string,
+     *         email?: string,
+     *         first_name?: string,
+     *         last_name: string,
+     *         address?: string,
+     *         town?: string,
+     *         region?: string,
+     *         country?: string
+     *     },
+     *     trxID?: string,
+     * } $params
+     *
+     * @return TransactionResponse
      * @throws InvalidClientRequestException
      * @throws ServerException
-     * @throws ServiceNotFoundException
+     * @throws ServiceNotFoundException|PermissionDeniedException
      */
-    public function updateSecurity($field, $action, $value = null, DateTime $date = null)
-    {
-        $endpoint = 'payment/security/';
-        $url = $this->buildUrl($endpoint);
+    public function purchaseAirtime(array $params) {
+        $endpoint = 'payment/airtime/';
 
-        if ($date == null) {
-            $date = new DateTime();
-        }
+        assert($params['amount'] > 0);
 
         $body = [
-            'field' => $field,
-            'action' => $action,
+            'amount' => $params['amount'],
+            'service' => $params['service'],
+            'receiver' => $params['receiver'],
+            'merchant' => $params['merchant'],
+            'currency' => Util::getOrDefault($params, 'currency', 'XAF'),
+            'amount_currency' => Util::getOrDefault($params, 'currency', 'XAF'),
         ];
-        if ($action !== 'UNSET') {
-            $body['value'] = $value;
+        if (!is_null(Util::getOrDefault($params, 'trxID'))) {
+            $body['trxID'] = $params['trxID'];
+        }
+        if (!is_null(Util::getOrDefault($params, 'location'))) {
+            $body['location'] = $params['location'];
+        }
+        if (!is_null(Util::getOrDefault($params, 'customer'))) {
+            $body['customer'] = $params['customer'];
+        }
+        if (!is_null(Util::getOrDefault($params, 'products'))) {
+            $body['products'] = $params['products'];
         }
 
-        $authorization = $this->getAuthorization('POST', $endpoint, $date, '', ['content-type' => 'application/json'], $body);
-
-        $client = new CurlClient();
-        list($rbody, $rcode, $rheaders) = $client->request('post', $url, [
-            'x-mesomb-date: '.$date->getTimestamp(),
-            'x-mesomb-nonce: ',
-            'Authorization: '.$authorization,
-            'Content-Type: application/json',
-            'X-MeSomb-Application:'.$this->applicationKey,
-        ], $body);
-        if ($rcode >= 300) {
-            $this->processClientException($rcode, $rbody);
-        }
-
-        return new Application(json_decode($rbody, true));
+        return new TransactionResponse($this->executeRequest('POST', $endpoint, new DateTime(), Util::getOrDefault($params, 'nonce', RandomGenerator::nonce()), $body, Util::getOrDefault($params, 'mode', 'synchronous')));
     }
 
     /**
      * Get the current status of your service on MeSomb
      *
-     * @param DateTime|null $date date of the request
      * @return Application
      * @throws InvalidClientRequestException
      * @throws ServerException
      * @throws ServiceNotFoundException
+     * @throws PermissionDeniedException
      */
-    public function getStatus(DateTime $date = null)
+    public function getStatus()
     {
         $endpoint = 'payment/status/';
 
-        if ($date == null) {
-            $date = new DateTime();
-        }
-
-        $authorization = $this->getAuthorization('GET', $endpoint, $date, '');
-
-        $client = new CurlClient();
-        list($rbody, $rcode, $rheaders) = $client->request('get', $this->buildUrl($endpoint), [
-            'x-mesomb-date: '.$date->getTimestamp(),
-            'x-mesomb-nonce: ',
-            'Authorization: '.$authorization,
-            'X-MeSomb-Application:'.$this->applicationKey,
-        ], null);
-
-        if ($rcode >= 300) {
-            $this->processClientException($rcode, $rbody);
-        }
-
-        return new Application(json_decode($rbody, true));
+        return new Application($this->executeRequest('GET', $endpoint, new DateTime(), ''));
     }
 
     /**
-     * Get transactions from MeSomb by IDs.
+     * Get transactions stored in MeSomb based on the list
      *
      * @param array $ids list of ids
-     * @param DateTime|null $date date of the request
-     * @return mixed|void
+     * @return Transaction[]|void
      * @throws InvalidClientRequestException
      * @throws PermissionDeniedException
      * @throws ServerException
      * @throws ServiceNotFoundException
      */
-    public function getTransactions(array $ids, DateTime $date = null)
+    public function getTransactions(array $ids, $source = 'MESOMB')
     {
-        $endpoint = "payment/transactions/?ids=".implode(',', $ids);
+        assert(count($ids) > 0);
+        assert($source == 'MESOMB' || $source == 'EXTERNAL');
 
-        if ($date == null) {
-            $date = new DateTime();
+        $endpoint = "payment/transactions/?".implode('&', array_map(function ($id) {return 'ids='.$id;}, $ids))."&source=".$source;
+
+        return array_map(function ($v) {
+            return new Transaction($v);
+        }, $this->executeRequest('GET', $endpoint, new DateTime(), ''));
+    }
+
+    /**
+     * Reprocess transaction at the operators level to confirm the status of a transaction
+     *
+     * @param array $ids list of ids
+     * @param string $source the source of the transaction
+     *
+     * @return Transaction[]|void
+     * @throws InvalidClientRequestException
+     * @throws PermissionDeniedException
+     * @throws ServerException
+     * @throws ServiceNotFoundException
+     */
+    public function checkTransactions(array $ids, $source = 'MESOMB')
+    {
+        assert(count($ids) > 0);
+        assert($source == 'MESOMB' || $source == 'EXTERNAL');
+
+        $endpoint = "payment/transactions/?".implode('&', array_map(function ($id) {return 'ids='.$id;}, $ids))."&source=".$source;
+
+        return array_map(function ($v) {
+            return new Transaction($v);
+        }, $this->executeRequest('GET', $endpoint, new DateTime(), ''));
+    }
+
+    /**
+     * @param string $id The transaction's id
+     * @param array{
+     *     amount?: float,
+     *     conversion?: bool,
+     *     currency?: string,
+     * } $params
+     * @return TransactionResponse
+     * @throws InvalidClientRequestException
+     * @throws PermissionDeniedException
+     * @throws ServerException
+     * @throws ServiceNotFoundException
+     */
+    public function refundTransaction($id, array $params = []) {
+        $endpoint = 'payment/refund/';
+
+
+        $body = [
+            'id' => $id,
+            'conversion' => Util::getOrDefault($params, 'conversion', false),
+            'currency' => Util::getOrDefault($params, 'currency', 'XAF'),
+            'amount_currency' => Util::getOrDefault($params, 'currency', 'XAF'),
+        ];
+        if (!is_null(Util::getOrDefault($params, 'amount'))) {
+            $body['amount'] = $params['amount'];
         }
 
-        $authorization = $this->getAuthorization('GET', $endpoint, $date, '');
-
-        $client = new CurlClient();
-        list($rbody, $rcode, $rheaders) = $client->request('get', $this->buildUrl($endpoint), [
-            'x-mesomb-date: '.$date->getTimestamp(),
-            'x-mesomb-nonce: ',
-            'Authorization: '.$authorization,
-            'X-MeSomb-Application:'.$this->applicationKey,
-        ], null);
-
-        if ($rcode >= 300) {
-            $this->processClientException($rcode, $rbody);
-        }
-
-        return json_decode($rbody, true);
+        return new TransactionResponse($this->executeRequest('POST', $endpoint, new DateTime(), Util::getOrDefault($params, 'nonce', RandomGenerator::nonce()), $body, Util::getOrDefault($params, 'mode', 'synchronous')));
     }
 }

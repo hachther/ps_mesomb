@@ -2,90 +2,63 @@
 
 namespace MeSomb\Model;
 
+/**
+ * Class Transaction
+ * @package MeSomb\Model
+ *
+ * @property bool $success - Indicates if the operation was successful.
+ * @property string|null $message - Message associated with the transaction response.
+ * @property string|null $redirect - URL to redirect if needed.
+ * @property Transaction $transaction - The transaction details.
+ * @property string|null $reference - Reference ID of the transaction.
+ * @property string $status - Status of the transaction.
+ */
 class TransactionResponse
 {
-    /** @var bool|mixed */
-    private $success;
+    /** @var bool */
+    public $success;
 
-    /** @var string|mixed|null  */
-    private $message;
+    /** @var string|null  */
+    public $message;
 
-    /** @var string|mixed|null  */
-    private $redirect;
+    /** @var string|null  */
+    public $redirect;
 
-    /** @var array|mixed */
-    private $data;
+    /** @var Transaction */
+    public $transaction;
 
-    /** @var string|mixed|null  */
-    private $reference;
+    /** @var string|null  */
+    public $reference;
 
-    /** @var string|mixed  */
-    private $status;
+    /** @var string  */
+    public $status;
 
     public function __construct($data)
     {
         $this->success = $data['success'];
         $this->message = $data['message'];
         $this->redirect = $data['redirect'];
-        $this->data = $data['transaction'];
+        $this->transaction = new Transaction($data['transaction']);
         $this->reference = $data['reference'];
         $this->status = $data['status'];
     }
 
+    /**
+     * Check if the operation was successful.
+     *
+     * @return bool
+     */
     public function isOperationSuccess()
     {
         return $this->success;
     }
 
+    /**
+     * Check if the transaction was successful.
+     *
+     * @return bool
+     */
     public function isTransactionSuccess() {
-        return $this->success && $this->status == 'SUCCESS';
-    }
-
-    /**
-     * @return bool|mixed
-     */
-    public function getSuccess()
-    {
-        return $this->success;
-    }
-
-    /**
-     * @return mixed|string
-     */
-    public function getMessage()
-    {
-        return $this->message;
-    }
-
-    /**
-     * @return mixed|string
-     */
-    public function getRedirect()
-    {
-        return $this->redirect;
-    }
-
-    /**
-     * @return array|mixed
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
-     * @return mixed|string
-     */
-    public function getReference()
-    {
-        return $this->reference;
-    }
-
-    /**
-     * @return mixed|string
-     */
-    public function getStatus()
-    {
-        return $this->status;
+        return $this->transaction && $this->transaction->isSuccess();
     }
 }

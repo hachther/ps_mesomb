@@ -59,10 +59,44 @@ If you use Composer, these dependencies should be handled automatically. If you 
 ```PHP
 <?php
 use MeSomb\Operation\PaymentOperation;
-use MeSomb\Signature;
 
-$client = new PaymentOperation('<applicationKey>', '<AccessKey>', '<SecretKey>');
-$client->makeCollect(100, 'MTN', '670000000', new DateTime(), Signature::nonceGenerator());
+$applicationKey = 'application key';
+$accessKey = 'access key';
+$secretKey = 'secret key';
+$client = new PaymentOperation($applicationKey, $accessKey, $secretKey);
+
+$response = $client->makeCollect([
+    'payer' => '670000000',
+    'amount' => 10000,
+    'service' => 'MTN',
+    'country' => 'CM',
+    'currency' => 'XAF',
+    'customer' => [
+        'email' => 'email@gmail.com',
+        'first_name' => 'Dan',
+        'last_name' => 'Fisher',
+        'town' => 'Douala',
+        'region' => 'Littoral',
+        'country' => 'CM',
+        'address' => 'Bepanda',
+    ],
+    'products' => [
+        [
+            'id' => 'SKU001',
+            'name' => 'Sac a Dos',
+            'category' => 'Sac',
+            'quantity' => 1,
+            'amount' => 10000
+        ]
+    ],
+    'location' => [
+        'town' => 'Douala',
+        'region' => 'Littoral',
+        'country' => 'CM'
+    ]
+]);
+$response->isOperationSuccess();
+$response->isTransactionSuccess();
 ```
 
 ### Depose money in an account
@@ -70,10 +104,44 @@ $client->makeCollect(100, 'MTN', '670000000', new DateTime(), Signature::nonceGe
 ```PHP
 <?php
 use MeSomb\Operation\PaymentOperation;
-use MeSomb\Signature;
 
-$client = new PaymentOperation('<applicationKey>', '<AccessKey>', '<SecretKey>');
-$client->makeDeposit(100, 'MTN', '670000000', new DateTime(), Signature::nonceGenerator());
+$applicationKey = 'application key';
+$accessKey = 'access key';
+$secretKey = 'secret key';
+$client = new PaymentOperation($applicationKey, $accessKey, $secretKey);
+
+$response = $client->makeDeposit([
+    'receiver' => '670000000',
+    'amount' => 10000,
+    'service' => 'MTN',
+    'country' => 'CM',
+    'currency' => 'XAF',
+    'customer' => [
+        'email' => 'email@gmail.com',
+        'first_name' => 'Dan',
+        'last_name' => 'Fisher',
+        'town' => 'Douala',
+        'region' => 'Littoral',
+        'country' => 'CM',
+        'address' => 'Bepanda',
+    ],
+    'products' => [
+        [
+            'id' => 'SKU001',
+            'name' => 'Sac a Dos',
+            'category' => 'Sac',
+            'quantity' => 1,
+            'amount' => 10000
+        ]
+    ],
+    'location' => [
+        'town' => 'Douala',
+        'region' => 'Littoral',
+        'country' => 'CM'
+    ]
+]);
+$response->isOperationSuccess();
+$response->isTransactionSuccess();
 ```
 
 ### Get application status
@@ -81,7 +149,7 @@ $client->makeDeposit(100, 'MTN', '670000000', new DateTime(), Signature::nonceGe
 ```PHP
 <?php
 use MeSomb\Operation\PaymentOperation;
-use MeSomb\Signature;
+use MeSomb\Util\RandomGenerator;
 
 $client = new PaymentOperation('<applicationKey>', '<AccessKey>', '<SecretKey>');
 $application = $client->getStatus();
@@ -94,11 +162,13 @@ print_r($application->getBalance());
 ```PHP
 <?php
 use MeSomb\Operation\PaymentOperation;
-use MeSomb\Signature;
 
-$client = new PaymentOperation('<applicationKey>', '<AccessKey>', '<SecretKey>');
-$transactions = $client->getTransactions(['ID1', 'ID2']);
-print_r($transactions);
+$applicationKey = 'application key';
+$accessKey = 'access key';
+$secretKey = 'secret key';
+$client = new PaymentOperation($applicationKey, $accessKey, $secretKey);
+$response = $client->getTransactions(['a483a9e8-51d7-44c9-875b-1305b1801274']);
+print_r($response);
 ```
 
 ## Documentation

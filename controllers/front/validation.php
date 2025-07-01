@@ -48,16 +48,14 @@ class Ps_mesombValidationModuleFrontController extends ModuleFrontController
         }
 
         $currency = $this->context->currency;
-        $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
-
-        $country_codes = ['CM' => '237', 'NE' => '227'];
-        $countries = explode(',', Configuration::get('MESOMB_COUNTRIES'));
+        $total = round((float)$cart->getOrderTotal(true, Cart::BOTH), _PS_PRICE_COMPUTE_PRECISION_);
+        \MeSomb\MeSomb::$apiBase = 'http://host.docker.internal:8000';
         $operation = new PaymentOperation(Configuration::get('APP_KEY'), Configuration::get('CLIENT_KEY'), Configuration::get('SECRET_KEY'));
-        $country = Tools::getValue('country', $countries[0]);
+        $country = Tools::getValue('country', 'CM');
         $service = Tools::getValue('service');
         $payer = Tools::getValue('payer');
+        $payer = ltrim($payer, '+');
         $payer = ltrim($payer, '00');
-        $payer = ltrim($payer, $country_codes[$country]);
         $phone = $delivery->phone ?? $delivery->phone_mobile;
         $cust = [
             'first_name' => $customer->firstname,
@@ -84,25 +82,20 @@ class Ps_mesombValidationModuleFrontController extends ModuleFrontController
             ];
         }
         try {
-            $ret = $operation->makeCollect(
-                $total,
-                $service,
-                $payer,
-                new DateTime('now'),
-                RandomGenerator::nonce(),
-                $cart->id,
-                $country,
-                $currency->iso_code,
-                Configuration::get('FEES_INCLUDED'),
-                null,
-                Configuration::get('CONVERSION'),
-                null,
-                $cust,
-                $products,
-                ['source' => 'PrestaShop '._PS_VERSION_]
-            );
+            $ret = $operation->makeCollect([
+                'amount' => $total,
+                'service' => $service,
+                'payer' => $payer,
+                'trxID' => $cart->id,
+                'country' => $country,
+                'currency' => $currency->iso_code,
+                'fees' => Configuration::get('FEES_INCLUDED'),
+                'conversion' => Configuration::get('CONVERSION'),
+                'customer' => $cust,
+                'products' => $products,
+                'extra' => ['source' => 'PrestaShop '._PS_VERSION_]
+            ]);
             if ($ret->isTransactionSuccess()) {
-                $trxData = $ret->getData();
                 $this->module->validateOrder(
                     (int) $cart->id,
                     (int) Configuration::get('PS_OS_PAYMENT'),
@@ -119,9 +112,9 @@ class Ps_mesombValidationModuleFrontController extends ModuleFrontController
                 $order = new Order($orderId);
                 $orderPaymentDatas = $order->getOrderPaymentCollection();
                 $orderPayment = new OrderPayment($orderPaymentDatas[0]->id);
-                $orderPayment->transaction_id = $trxData['pk'];
-                $orderPayment->card_number = $trxData['b_party'];
-                $orderPayment->card_brand = $trxData['service'];
+                $orderPayment->transaction_id = $ret->transaction->pk;
+                $orderPayment->card_number = $ret->transaction->b_party;
+                $orderPayment->card_brand = $ret->transaction->service;
                 $orderPayment->save();
 
                 Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int) $cart->id . '&id_module=' . (int) $this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key);

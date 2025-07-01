@@ -221,6 +221,10 @@ class CurlClient
         } elseif ('post' === $method) {
             $opts[CURLOPT_POST] = 1;
             $opts[CURLOPT_POSTFIELDS] = $hasFile ? $params : json_encode($params, JSON_UNESCAPED_SLASHES);
+        } elseif ('put' === $method) {
+            $opts[CURLOPT_CUSTOMREQUEST] = 'PUT';
+            $opts[CURLOPT_POST] = 1;
+            $opts[CURLOPT_POSTFIELDS] = $hasFile ? $params : json_encode($params, JSON_UNESCAPED_SLASHES);
         } elseif ('delete' === $method) {
             $opts[CURLOPT_CUSTOMREQUEST] = 'DELETE';
             if (!is_null($params) && count($params) > 0) {
@@ -260,9 +264,9 @@ class CurlClient
         $opts[CURLOPT_TIMEOUT] = $this->timeout;
         $opts[CURLOPT_HTTPHEADER] = $headers;
 //        $opts[CURLOPT_CAINFO] = MeSomb::getCABundlePath();
-//        if (!MeSomb::getVerifySslCerts()) {
-//            $opts[CURLOPT_SSL_VERIFYPEER] = false;
-//        }
+        if (!MeSomb::getVerifySslCerts()) {
+            $opts[CURLOPT_SSL_VERIFYPEER] = false;
+        }
 
         if (!isset($opts[CURLOPT_HTTP_VERSION]) && $this->getEnableHttp2()) {
             // For HTTPS requests, enable HTTP/2, if supported
@@ -573,7 +577,7 @@ class CurlClient
             $msg .= "\n\nRequest was retried {$numRetries} times.";
         }
 
-        throw new ServerException($msg);
+        throw new ServerException($msg, 0);
     }
 
     /**

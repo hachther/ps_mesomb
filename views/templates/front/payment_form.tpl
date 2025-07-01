@@ -24,6 +24,7 @@
 *}
 
 <form action="{$action}" id="payment-form">
+  <div style="display: none;" id="mesomb-provider-names" data-json='{json_encode($placeholders)}'></div>
   {if is_array($countries) && count($countries) > 1}
     <div class="form-group row">
       <label class="col-md-3 form-control-label required" for="id_country">{l s='Country'}</label>
@@ -41,7 +42,7 @@
     <div class="col-md-6 js-input-column">
       <div id="providers" style="display: flex; flex-direction: row; flex-wrap: wrap;">
           {foreach from=$providers item=provider}
-            <div class="form-row provider-row {implode(' ', $provider.countries)}" style="width: 47%; margin-right: 2%">
+            <div class="form-row provider-row {implode(' ', $provider.countries)}" style="width: 47%; margin-right: 2%; margin-bottom: 2%;">
               <label class="kt-option">
                 <span class="kt-option__label">
                   <span class="kt-option__head">
