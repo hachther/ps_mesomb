@@ -24,7 +24,6 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-use GuzzleHttp\Client;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
@@ -41,16 +40,11 @@ class Ps_mesomb extends PaymentModule
     public $address;
     public $extra_mail_vars;
 
-    private $countries_name = [
-        'CM' => 'Cameroon',
-        'NE' => 'Niger',
-    ];
-
     public function __construct()
     {
         $this->name = 'ps_mesomb';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.1';
+        $this->version = '1.2.0';
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
         $this->author = 'Hachther LLC';
         $this->controllers = ['payment', 'validation'];
@@ -355,17 +349,27 @@ class Ps_mesomb extends PaymentModule
     protected function loadPricing()
     {
         $url = 'http://host.docker.internal:8000/api/v1.1/payment/pricing/';
-        $client = new Client();
-        $options = [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Output-Format' => 'JSON',
-                'X-MeSomb-Application' => $this->appKey,
-            ]
+
+        $curl = curl_init();
+
+        $headers = [
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'X-MeSomb-Application: '.$this->appKey,
         ];
 
-        $response = $client->request('GET', $url, $options);
-        return json_decode($response->getBody()->getContents(), true);
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+
+        $response = curl_exec($curl);
+
+        if (curl_error($curl)) {
+            echo 'Error: ' . curl_error($curl);
+        } else {
+            $data = json_decode($response, true);
+            return $data;
+        }
     }
 
     protected function generateForm()
