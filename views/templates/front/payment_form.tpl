@@ -41,16 +41,15 @@
     <label class="col-md-3 form-control-label required" for="id_country">{l s='Operator'}</label>
     <div class="col-md-6 js-input-column">
       {foreach from=$providers item=provider}
-        <div class="form-check provider-row {implode(' ', $provider.countries)}">
-          <span class="custom-radio float-xs-left">
-            <input class="ps-shown-by-js " name="service" type="radio" value="{$provider.key}" id="id_{$provider.key}">
-            <span></span>
-          </span>
-          <label for="id_{$provider.key}" style="font-weight: normal !important;">
+        <div style="margin-bottom: .5rem;" class="provider-row {implode(' ', $provider.countries)}">
+          <label class="radio-inline" for="id_{$provider.key}">
+            <span class="custom-radio">
+              <input name="service" id="id_{$provider.key}" type="radio" value="{$provider.key}">
+              <span></span>
+            </span>
             {$provider.name}
           </label>
         </div>
-        <option value="{$provider.key}" class="{implode(' ', $provider.countries)}">{$provider.name}</option>
       {/foreach}
     </div>
   </div>

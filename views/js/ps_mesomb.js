@@ -41,6 +41,7 @@ jQuery(function ($) {
     $('.provider-row input').prop('checked', false);
     $('.provider-row').hide();
     $('.' + country).show();
+    $('input[name=payer]').attr('placeholder', '');
   }
   // var checkout_form = $( 'form.woocommerce-checkout' );
   // checkout_form.on( 'checkout_place_order', tokenRequest );
