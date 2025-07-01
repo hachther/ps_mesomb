@@ -348,6 +348,7 @@ class Ps_mesomb extends PaymentModule
 
     protected function loadPricing()
     {
+//        $url = 'http://host.docker.internal:8000/api/v1.1/payment/pricing/';
         $url = 'https://mesomb.hachther.com/api/v1.1/payment/pricing/';
 
         $curl = curl_init();

@@ -40,31 +40,18 @@
   <div class="form-group row">
     <label class="col-md-3 form-control-label required" for="id_country">{l s='Operator'}</label>
     <div class="col-md-6 js-input-column">
-      <div id="providers" style="display: flex; flex-direction: row; flex-wrap: wrap;">
-          {foreach from=$providers item=provider}
-            <div class="form-row provider-row {implode(' ', $provider.countries)}" style="width: 47%; margin-right: 2%; margin-bottom: 2%;">
-              <label class="kt-option">
-                <span class="kt-option__label">
-                  <span class="kt-option__head">
-                    <span class="kt-option__control">
-                        <span class="kt-radio">
-                          <input name="service" value="{$provider.key}" type="radio"/>
-                          <span></span>
-                        </span>
-                    </span>
-                    <span class="kt-option__title">{$provider.name}</span>
-                    <span class="kt-option__focus"
-                          style="position: relative; right: -10px; top: -10px;">
-                      <img alt="{$provider.key}" src="{$provider.icon}"
-                           style="width: 25px; border-radius: 13px;"/>
-                    </span>
-                  </span>
-                  <span class="kt-option__body">{$provider.description}</span>
-                </span>
-              </label>
-            </div>
-          {/foreach}
-      </div>
+      {foreach from=$providers item=provider}
+        <div class="form-check provider-row {implode(' ', $provider.countries)}">
+          <span class="custom-radio float-xs-left">
+            <input class="ps-shown-by-js " name="service" type="radio" value="{$provider.key}" id="id_{$provider.key}">
+            <span></span>
+          </span>
+          <label for="id_{$provider.key}" style="font-weight: normal !important;">
+            {$provider.name}
+          </label>
+        </div>
+        <option value="{$provider.key}" class="{implode(' ', $provider.countries)}">{$provider.name}</option>
+      {/foreach}
     </div>
   </div>
   <div class="form-group row">
