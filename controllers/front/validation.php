@@ -54,7 +54,9 @@ class Ps_mesombValidationModuleFrontController extends ModuleFrontController
         $service = Tools::getValue('service');
         $payer = Tools::getValue('payer');
         $payer = ltrim($payer, '+');
-        $payer = ltrim($payer, '00');
+        if (str_starts_with($payer, '00')) {
+            $payer = substr($payer, 2);
+        }
         $phone = $delivery->phone ?? $delivery->phone_mobile;
         $cust = [
             'first_name' => $customer->firstname,
